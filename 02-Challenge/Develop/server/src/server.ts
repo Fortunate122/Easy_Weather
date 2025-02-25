@@ -56,7 +56,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ API routes
-app.use('/api', routes);
+app.use('/', routes);
 
 // ✅ Log request for `index.html`
 // app.get('*', (_, res) => {
