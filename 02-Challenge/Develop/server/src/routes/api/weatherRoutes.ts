@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 // import HistoryService from '../../service/historyService.js';
 // import WeatherService from '../../service/weatherService.js';
-import historyService from '../../service/historyService';
-import weatherService from '../../service/weatherService';
+import historyService from '../../service/historyService.js';
+import weatherService from '../../service/weatherService.js';
 
 const router = Router();
 
@@ -18,26 +18,26 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const weatherData = await weatherService.getWeatherForCity(cityName);
 
-  // TODO: save city to search history
-  await historyService.addCity(cityName);
+    // TODO: save city to search history
+    await historyService.addCity(cityName);
 
-  res.json(weatherData);
-} catch (error) {
-  console.error('Error fetching weather:', error);
-  res.status(500).json({ error: 'Failed to retreieve weather data;'});
-}
+    return res.json(weatherData);
+  } catch (error) {
+    console.error('Error fetching weather:', error);
+    return res.status(500).json({ error: 'Failed to retreieve weather data;' });
+  }
 });
 
 // TODO: GET search history
-router.get('/history', async (req: Request, res: Response) => {
-  try {
-    const history = await historyService.getCities();
-    res.json(history);
-  } catch (error) {
-    console.error('Error retrieving history:', error);
-    res.status(500).json({ error: 'Failed to retrieve search history' });
-  }
-});
+router.get('/history', async (_req: Request, res: Response) => {
+    try {
+      const history = await historyService.getCities();
+      res.json(history);
+    } catch (error) {
+      console.error('Error retrieving history:', error);
+      res.status(500).json({ error: 'Failed to retrieve search history' });
+    }
+  });
 
 // * BONUS TODO: DELETE city from search history
 router.delete('/history/:id', async (req: Request, res: Response) => {
