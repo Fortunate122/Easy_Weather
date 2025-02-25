@@ -59,11 +59,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', routes);
 
 // ✅ Log request for `index.html`
-app.get('*', (_, res) => {
-    const filePath = path.join(distPath, 'index.html');
-    console.log('📄 Serving index.html from:', filePath);
-    res.sendFile(filePath);
-});
+// app.get('*', (_, res) => {
+//     const filePath = path.join(distPath, 'index.html');
+//     console.log('📄 Serving index.html from:', filePath);
+//     res.sendFile(filePath);
+// });
 
 // ✅ Start server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
