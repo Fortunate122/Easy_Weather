@@ -41,7 +41,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ✅ Fix: Use `process.cwd()` to correctly find `client/dist`
-const distPath = path.join(process.cwd(), 'client', 'dist');
+const distPath = path.join(process.cwd(), '../client/dist');
 console.log('📂 Serving static files from:', distPath);
 
 // ✅ Serve static frontend files
