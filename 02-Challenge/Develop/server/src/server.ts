@@ -40,7 +40,7 @@ import routes from './routes/index.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Fix: Use `process.cwd()` instead of `__dirname`
+// ✅ Fix: Use `process.cwd()` to correctly find `client/dist`
 const distPath = path.join(process.cwd(), 'client', 'dist');
 console.log('📂 Serving static files from:', distPath);
 
@@ -53,10 +53,11 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ API routes
 app.use('/api', routes);
 
-// ✅ Serve `index.html` for all non-API routes
+// ✅ Fix: Serve `index.html` correctly
 app.get('*', (_, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // ✅ Start server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+
