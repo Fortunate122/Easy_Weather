@@ -19,7 +19,7 @@
 // app.use(express.urlencoded({ extended: true }));
 
 // // TODO: Implement middleware to connect the routes
-// app.use('/api', routes);
+// app.use('/', routes);
 
 // app.get('*', (_, res) => {
 //     res.sendFile(path.join(process.cwd(), 'client', 'dist', 'index.html'));

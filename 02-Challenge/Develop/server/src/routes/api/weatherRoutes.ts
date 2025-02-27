@@ -8,25 +8,41 @@ const router = Router();
 
 // TODO: POST Request with city name to retrieve weather data
 router.post('/', async (req: Request, res: Response) => {
-  // TODO: GET weather data from city name
-  const { cityName } = req.body;
-
-  if (!cityName) {
-    return res.status(400).json({ error: 'City name is required' });
-  }
-
   try {
+    const { cityName } = req.body;
+    if (!cityName) {
+      res.status(400).json({ error: "City name is required" });
+      return;
+    }
+
+    console.log(`📍 Received request for city: ${cityName}`);
+
     const weatherData = await weatherService.getWeatherForCity(cityName);
-
-    // TODO: save city to search history
-    await historyService.addCity(cityName);
-
-    return res.json(weatherData);
+    res.json(weatherData);
   } catch (error) {
-    console.error('Error fetching weather:', error);
-    return res.status(500).json({ error: 'Failed to retreieve weather data;' });
+    console.error("❌ Error in weatherRoutes:", error);
+    res.status(500).json({ error: "Failed to fetch weather data" });
   }
 });
+  // TODO: GET weather data from city name
+//   const { cityName } = req.body;
+
+//   if (!cityName) {
+//     return res.status(400).json({ error: 'City name is required' });
+//   }
+
+//   try {
+//     const weatherData = await weatherService.getWeatherForCity(cityName);
+
+//     // TODO: save city to search history
+//     await historyService.addCity(cityName);
+
+//     return res.json(weatherData);
+//   } catch (error) {
+//     console.error('Error fetching weather:', error);
+//     return res.status(500).json({ error: 'Failed to retreieve weather data;' });
+//   }
+// });
 
 // TODO: GET search history
 router.get('/history', async (_req: Request, res: Response) => {
