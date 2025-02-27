@@ -51,7 +51,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ API routes
-app.use('/api', routes);
+app.use('/', routes);
 
 // ✅ Fix: Serve `index.html` correctly
 app.get('*', (_, res) => {
