@@ -31,7 +31,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -41,12 +40,8 @@ import routes from './routes/index.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Convert `import.meta.url` to `__dirname` (for ES modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ✅ Absolute path to `client/dist/`
-const distPath = path.join(__dirname, '../../client/dist');
+// ✅ Fix: Use `process.cwd()` instead of `__dirname`
+const distPath = path.join(process.cwd(), 'client', 'dist');
 console.log('📂 Serving static files from:', distPath);
 
 // ✅ Serve static frontend files
@@ -56,16 +51,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ API routes
-app.use('/', routes);
+app.use('/api', routes);
 
-// ✅ Log request for `index.html`
+// ✅ Serve `index.html` for all non-API routes
 app.get('*', (_, res) => {
-    const filePath = path.join(distPath, 'index.html');
-    console.log('📄 Serving index.html from:', filePath);
-    res.sendFile(filePath);
+    res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // ✅ Start server
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
-
-
