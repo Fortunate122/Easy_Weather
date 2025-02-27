@@ -3,7 +3,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 const HISTORY_FILE_PATH = path.join(
-  process.cwd(), 'server', 'src', 'data', 'serachHistory.json');
+  process.cwd(), 'src', 'data', 'searchHistory.json');
 
 // TODO: Define a City class with name and id properties
 class City {
