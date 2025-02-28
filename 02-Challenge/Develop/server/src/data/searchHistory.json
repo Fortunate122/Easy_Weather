@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "name": "Corona",
+    "id": "34a03aa9-74c2-4693-9b28-64eccd8fe305"
+  },
+  {
+    "name": "Los Angeles",
+    "id": "93d35332-d7ad-4728-9ead-91529b87e43c"
+  },
+  {
+    "name": "New York",
+    "id": "f8246190-2ce7-4905-af42-f42a0959807a"
+  }
+]

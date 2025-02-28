@@ -148,11 +148,13 @@ const renderSearchHistory = async (searchHistory: any) => {
     if (!historyList.length) {
       searchHistoryContainer.innerHTML =
         '<p class="text-center">No Previous Search History</p>';
+        return;
     }
 
     // * Start at end of history array and count down to show the most recent cities at the top.
     for (let i = historyList.length - 1; i >= 0; i--) {
-      const historyItem = buildHistoryListItem(historyList[i]);
+      const city = historyList[i];
+      const historyItem = buildHistoryListItem(city);
       searchHistoryContainer.append(historyItem);
     }
   }
@@ -212,7 +214,7 @@ const createHistoryButton = (city: string) => {
   return btn;
 };
 
-const createDeleteButton = () => {
+const createDeleteButton = (city: any) => {
   const delBtnEl = document.createElement('button');
   delBtnEl.setAttribute('type', 'button');
   delBtnEl.classList.add(
@@ -224,6 +226,7 @@ const createDeleteButton = () => {
     'col-2'
   );
 
+  delBtnEl.setAttribute("data-city", JSON.stringify(city));
   delBtnEl.addEventListener('click', handleDeleteHistoryClick);
   return delBtnEl;
 };
@@ -234,10 +237,13 @@ const createHistoryDiv = () => {
   return div;
 };
 
-const buildHistoryListItem = (city: any) => {
+const buildHistoryListItem = (city: { id: string; name: string}) => {
   const newBtn = createHistoryButton(city.name);
-  const deleteBtn = createDeleteButton();
+  newBtn.setAttribute("data-id", city.id);
+
+  const deleteBtn = createDeleteButton(city);
   deleteBtn.dataset.city = JSON.stringify(city);
+
   const historyDiv = createHistoryDiv();
   historyDiv.append(newBtn, deleteBtn);
   return historyDiv;
@@ -265,15 +271,37 @@ const handleSearchFormSubmit = (event: any): void => {
 
 const handleSearchHistoryClick = (event: any) => {
   if (event.target.matches('.history-btn')) {
-    const city = event.target.textContent;
-    fetchWeather(city).then(getAndRenderHistory);
+    const cityName = event.target.textContent;
+    fetchWeather(cityName).then(getAndRenderHistory);
   }
 };
 
 const handleDeleteHistoryClick = (event: any) => {
   event.stopPropagation();
-  const cityID = JSON.parse(event.target.getAttribute('data-city')).id;
-  deleteCityFromHistory(cityID).then(getAndRenderHistory);
+  console.log("handleDeleteHistoryClick triggered!");
+
+  // ✅ Extract city data
+  const cityData = event.target.getAttribute("data-city");
+  if (!cityData) {
+    console.error("❌ No city data found");
+    return;
+  }
+
+  // ✅ Parse city object
+  const city = JSON.parse(cityData);
+  const cityID = city.id;
+
+  console.log(`🗑️ Attempting to delete city: ${city.name} (ID: ${cityID})`);
+
+  // ✅ Call delete function & log result
+  deleteCityFromHistory(cityID)
+    .then(() => {
+      console.log(`✅ Successfully deleted: ${city.name} (ID: ${cityID})`);
+      getAndRenderHistory();
+    })
+    .catch((error) => {
+      console.error(`❌ Error deleting ${city.name} (ID: ${cityID}):`, error);
+    });
 };
 
 /*

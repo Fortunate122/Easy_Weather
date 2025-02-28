@@ -51,7 +51,7 @@ class HistoryService {
       return;
     }
 
-    const newCity = new City(uuidv4(), cityName);
+    const newCity = new City(cityName, uuidv4());
     cities.push(newCity);
 
     await this.write(cities);
