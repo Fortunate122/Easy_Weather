@@ -1,4 +1,5 @@
 import './styles/jass.css';
+import './styles/style.css';
 
 // * All necessary DOM elements selected
 const searchForm: HTMLFormElement = document.getElementById(
@@ -27,6 +28,22 @@ const windEl: HTMLParagraphElement = document.getElementById(
 const humidityEl: HTMLParagraphElement = document.getElementById(
   'humidity'
 ) as HTMLParagraphElement;
+
+// trip planner DOM elements
+const tripForm = document.getElementById('trip-form') as HTMLFormElement;
+const upcomingTripsContainer = document.getElementById(
+  'upcoming-trips'
+) as HTMLDivElement;
+
+//trip type
+type Trip = {
+  id: string;
+  name: string;
+  city: string;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+};
 
 /*
 
@@ -160,6 +177,74 @@ const renderSearchHistory = async (searchHistory: any) => {
   }
 };
 
+// render saved trips
+const renderTrips = (): void => {
+  const trips = getTrips();
+
+  if (!upcomingTripsContainer) return;
+
+  if (trips.length === 0) {
+    upcomingTripsContainer.innerHTML = `
+      <p class="empty-trips-message">
+        No trips saved yet. Search a city or add a future destination to start planning.
+      </p>
+    `;
+    return;
+  }
+
+  trips.sort(
+    (a, b) =>
+      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
+
+  upcomingTripsContainer.innerHTML = trips
+    .map((trip) => {
+      const today = new Date();
+      const tripDate = new Date(trip.startDate);
+      const diffTime = tripDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      return `
+        <div class="trip-card" data-trip-city="${trip.city}">
+          <div class="trip-card-content">
+            <h3>${trip.name || trip.city}</h3>
+            <p class="trip-meta"><strong>Destination:</strong> ${trip.city}</p>
+            <p class="trip-meta"><strong>Start:</strong> ${trip.startDate}</p>
+            ${
+              trip.endDate
+                ? `<p class="trip-meta"><strong>End:</strong> ${trip.endDate}</p>`
+                : ''
+            }
+            ${
+              trip.notes
+                ? `<p class="trip-meta"><strong>Notes:</strong> ${trip.notes}</p>`
+                : ''
+            }
+            <p class="trip-countdown">
+              ${
+                diffDays >= 0
+                  ? `${diffDays} day${diffDays === 1 ? '' : 's'} away`
+                  : 'Trip passed'
+              }
+            </p>
+          </div>
+
+          <div class="trip-card-actions">
+            <button
+              type="button"
+              class="btn btn-danger delete-trip-btn"
+              data-trip-id="${trip.id}"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+};
+
+
 /*
 
 Helper Functions
@@ -249,6 +334,23 @@ const buildHistoryListItem = (city: { id: string; name: string}) => {
   return historyDiv;
 };
 
+// local storage functions for trips
+const getTrips = (): Trip[] => {
+  const storedTrips = localStorage.getItem('trips');
+  return storedTrips ? JSON.parse(storedTrips) : [];
+};
+
+const saveTrip = (trip: Trip): void => {
+  const trips = getTrips();
+  trips.push(trip);
+  localStorage.setItem('trips', JSON.stringify(trips));
+};
+
+const deleteTrip = (tripId: string): void => {
+  const trips = getTrips().filter((trip) => trip.id !== tripId);
+  localStorage.setItem('trips', JSON.stringify(trips));
+};
+
 /*
 
 Event Handlers
@@ -304,6 +406,94 @@ const handleDeleteHistoryClick = (event: any) => {
     });
 };
 
+// trip form submit handler
+const handleTripFormSubmit = (event: Event): void => {
+  event.preventDefault();
+
+  const tripName = (document.getElementById('trip-name') as HTMLInputElement)
+  .value.trim();
+  const tripCity = (document.getElementById('trip-city') as HTMLInputElement)
+  .value.trim();
+  const tripStartDate = (document.getElementById('trip-start-date') as HTMLInputElement)
+    .value;
+  const tripEndDate = (document.getElementById('trip-end-date') as HTMLInputElement)
+    .value;
+  const tripNotes = (document.getElementById('trip-notes') as HTMLTextAreaElement)
+    .value.trim();
+
+  if (!tripCity || !tripStartDate) {
+    alert('Please provide at least a city and start date for your trip.');
+    return;
+  }
+
+  const newTrip: Trip = {
+    id: Date.now().toString(),
+    name: tripName,
+    city: tripCity,
+    startDate: tripStartDate,
+    endDate: tripEndDate,
+    notes: tripNotes,
+  };
+
+  saveTrip(newTrip);
+  renderTrips();
+  tripForm.reset();
+};
+
+// click saved trip to load weather
+// ===== NEW: Click saved trip to load weather =====
+const handleTripCardClick = (event: MouseEvent): void => {
+  const rawTarget = event.target as Node | null;
+  if (!rawTarget) return;
+
+  const element =
+    rawTarget instanceof Element ? rawTarget : rawTarget.parentElement;
+  if (!element) return;
+
+  // Ignore clicks on delete button
+  if (element.closest('.delete-trip-btn')) {
+    return;
+  }
+
+  const tripCard = element.closest('.trip-card') as HTMLElement | null;
+  if (!tripCard) return;
+
+  const cityName = tripCard.dataset.tripCity;
+  if (!cityName) return;
+
+  console.log('Loading weather for saved trip city:', cityName);
+
+  fetchWeather(cityName)
+    .then(() => {
+      getAndRenderHistory();
+    })
+    .catch((error) => {
+      console.error('Error loading trip weather:', error);
+    });
+};
+
+// ===== NEW: Delete saved trip =====
+const handleDeleteTripClick = (event: MouseEvent): void => {
+  const rawTarget = event.target as Node | null;
+  if (!rawTarget) return;
+
+  const element =
+    rawTarget instanceof Element ? rawTarget : rawTarget.parentElement;
+  if (!element) return;
+
+  const deleteButton = element.closest('.delete-trip-btn') as HTMLElement | null;
+  if (!deleteButton) return;
+
+  event.stopPropagation();
+
+  const tripId = deleteButton.dataset.tripId;
+  if (!tripId) return;
+
+  deleteTrip(tripId);
+  renderTrips();
+};
+
+
 /*
 
 Initial Render
@@ -316,4 +506,12 @@ const getAndRenderHistory = () =>
 searchForm?.addEventListener('submit', handleSearchFormSubmit);
 searchHistoryContainer?.addEventListener('click', handleSearchHistoryClick);
 
+tripForm?.addEventListener('submit', handleTripFormSubmit);
+
+//saved trip interactions
+upcomingTripsContainer?.addEventListener('click', handleTripCardClick);
+upcomingTripsContainer?.addEventListener('click', handleDeleteTripClick);
+
 getAndRenderHistory();
+
+renderTrips();
